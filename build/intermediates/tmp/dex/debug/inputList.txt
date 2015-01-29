@@ -1,0 +1,6 @@
+/home/newpouy/Android/BluetoothRelated/btchat/build/intermediates/classes/debug
+/home/newpouy/Android/BluetoothRelated/btchat/build/intermediates/pre-dexed/debug/support-annotations-21.0.2-8be2fd314710acc0af88d98237f62d48ef772a4e.jar
+/home/newpouy/Android/BluetoothRelated/btchat/build/intermediates/pre-dexed/debug/classes-181f928cf685f883c4ce174aaf664b32ff101890.jar
+/home/newpouy/Android/BluetoothRelated/btchat/build/intermediates/pre-dexed/debug/classes-9c85e564f849da56729959c14f76af8b2fc76d04.jar
+/home/newpouy/Android/BluetoothRelated/btchat/build/intermediates/pre-dexed/debug/internal_impl-21.0.2-ab5cfbd37ffd4c302e12ed598f2c95b89e121832.jar
+/home/newpouy/Android/BluetoothRelated/btchat/build/intermediates/pre-dexed/debug/classes-ed6cd4dfae3bf0850f47e38f054e452ba4c54443.jar
