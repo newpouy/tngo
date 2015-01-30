@@ -20,10 +20,10 @@ import android.widget.ImageView;
 public class FlingImageView extends ImageView {
     final static String TAG = "fiv";
     GestureDetector gestureDetector;
-    Bitmap bitmap;
+
     DrawView drawView;
 
-    public FlingImageView(Context context, final DrawView drawView) {
+    public FlingImageView(Context context, final DrawView drawView, final Bitmap bitmap) {
         super(context);
         this.drawView = drawView;
         gestureDetector = new GestureDetector(getContext(), new GestureDetector.OnGestureListener() {
@@ -58,9 +58,14 @@ public class FlingImageView extends ImageView {
                 if(velocityY<-10.0f){
                     Log.d(TAG,"h3");
                     drawView.tryFling = true;
-                    drawView.sendImage();
                     startAnimation(getFlingAnimation());
-
+                    Thread thread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            drawView.sendImage(bitmap);
+                        }
+                    });
+                    thread.start();
                 }else{
                     Log.d(TAG,"too slow");
                 }

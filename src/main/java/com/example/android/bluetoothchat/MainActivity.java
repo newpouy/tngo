@@ -18,14 +18,14 @@ package com.example.android.bluetoothchat;
 
 import android.bluetooth.BluetoothAdapter;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ViewAnimator;
 
-import com.example.android.common.activities.SampleActivityBase;
 
-public class MainActivity extends SampleActivityBase {
+public class MainActivity extends FragmentActivity {
 
     public static final String TAG = "MainActivity";
 

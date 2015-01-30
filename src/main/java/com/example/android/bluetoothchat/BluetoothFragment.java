@@ -23,6 +23,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.gesture.GestureOverlayView;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -54,7 +55,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
-import com.example.android.common.logger.Log;
+import android.util.Log;
 import com.example.android.view.DrawView;
 
 import java.util.Random;
@@ -71,7 +72,7 @@ public class BluetoothFragment extends Fragment {
     private static final int MODE_SEND_DRAW = 2;
     private static final int MODE_BOMB_GAME = 3;
     private static final int MODE_CARD_GAME = 4;
-    private int mode;
+    private int mainMode;
 
     private String signal;
     private String phoneNum;
@@ -80,7 +81,6 @@ public class BluetoothFragment extends Fragment {
     private EditText mOutEditText;
     private Button mSendButton;
     private GestureOverlayView gestureOverlayView;
-    private GestureOverlayView sendDrawOverlayView;
     private RelativeLayout cardGameLayout;
     private RelativeLayout sendDrawLayout;
     private TextView touchX;
@@ -88,12 +88,13 @@ public class BluetoothFragment extends Fragment {
     private TextView gravityX;
     private TextView gravityY;
     private TextView gravityZ;
+    private DrawView drawView;
 
     private String mConnectedDeviceName = null;
     private ArrayAdapter<String> mConversationArrayAdapter;
     private StringBuffer mOutStringBuffer;
     private BluetoothAdapter mBluetoothAdapter = null;
-    private BluetoothService mChatService = null;
+    public BluetoothService mChatService = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -116,6 +117,8 @@ public class BluetoothFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+
+
         // If BT is not on, request that it be enabled.
         // setupChat() will then be called during onActivityResult
         if (!mBluetoothAdapter.isEnabled()) {
@@ -168,23 +171,19 @@ public class BluetoothFragment extends Fragment {
 
 
         setMainView(MODE_SEND_PHONENUM);
+        mainMode = MODE_SEND_PHONENUM;
+        //setMainView(MODE_SEND_DRAW);
+        //mainMode = MODE_SEND_DRAW;
     }
 
-    Bitmap sendBitmap = null;
-    ImageView imageView1 = null;
-    ImageView imageView2 = null;
-    ViewFlipper viewFlipper = null;
-    int mCurrentLayoutState;
-    private GestureDetector mGestureDetector;
     private void setMainView(int mode){
 
         switch (mode) {
             case MODE_SEND_PHONENUM:
+                mainMode = MODE_SEND_PHONENUM;
                 cardGameLayout.setVisibility(View.GONE);
                 gestureOverlayView.setVisibility(View.VISIBLE);
                 gestureOverlayView.setOnTouchListener(new View.OnTouchListener() {
-                    float firstTouchY = 0;
-                    float lastTouchY = 0;
 
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
@@ -207,20 +206,23 @@ public class BluetoothFragment extends Fragment {
                 });
                 break;
             case MODE_SEND_DRAW:
+                mainMode = MODE_SEND_DRAW;
                 cardGameLayout.setVisibility(View.INVISIBLE);
                 gestureOverlayView.setVisibility(View.INVISIBLE);
                 sendDrawLayout = (RelativeLayout) getActivity().findViewById(R.id.send_draw_layout);
                 sendDrawLayout.setVisibility(View.VISIBLE);
                 Log.d(TAG, sendDrawLayout.getWidth()+" isjsafdffs");
-                DrawView drawView = new DrawView(getActivity(), sendDrawLayout, getActivity());
+                drawView = new DrawView(getActivity(), sendDrawLayout, getActivity(),mChatService);
                 sendDrawLayout.addView(drawView);
                 break;
             case MODE_CARD_GAME:
+                mainMode = MODE_CARD_GAME;
                 gestureOverlayView.setVisibility(View.GONE);
                 cardGameLayout.setVisibility(View.VISIBLE);
                 //ViewFlipper로 다시
                 break;
             case MODE_BOMB_GAME:
+                mainMode = MODE_BOMB_GAME;
                 break;
         }
     }
@@ -382,7 +384,21 @@ public class BluetoothFragment extends Fragment {
                     String readMessage = new String(readBuf, 0, msg.arg1);
                     mConversationArrayAdapter.add(mConnectedDeviceName + ":  " + readMessage);
                     gestureOverlayView.setBackgroundColor(color);
+                    break;
+                case Constants.BITMAP_READ:
+                    Bitmap bitmap = (Bitmap) msg.obj;
+                    if(bitmap!=null) {
+                        Log.d(TAG, bitmap.getWidth() + " and "+bitmap.getHeight());
+                        sendDrawLayout.removeAllViews();
+                        //DrawView newDrawView = new DrawView(getActivity(), sendDrawLayout, getActivity(), mChatService);
+                        //newDrawView.setBitmap(bitmap);
+                        ImageView imageView = new ImageView(getActivity());
+                        imageView.setImageBitmap(bitmap);
+                        sendDrawLayout.addView(imageView);
 
+                    }else{
+                        Log.d(TAG, "hull null hull null");
+                    }
                     break;
                 case Constants.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
@@ -506,47 +522,12 @@ public class BluetoothFragment extends Fragment {
         }
     }
 
-    public int getMode() {
-        return mode;
+    public int getMainMode() {
+        return mainMode;
     }
 
-    public void setMode(int mode) {
-        this.mode = mode;
-    }
-    public void switchLayoutStateTo(int switchTo) {
-        mCurrentLayoutState = switchTo;
-
-        viewFlipper.setInAnimation(inFromRightAnimation());
-        viewFlipper.setOutAnimation(outToLeftAnimation());
-
-
-        if (switchTo == 0) {
-            imageView1.setImageBitmap(sendBitmap);
-        } else {
-            imageView2.setImageBitmap(sendBitmap);
-        }
-
-        viewFlipper.showPrevious();
-    }
-    private Animation inFromRightAnimation() {
-        Animation inFromRight = new TranslateAnimation(
-                Animation.RELATIVE_TO_PARENT, +1.0f,
-                Animation.RELATIVE_TO_PARENT, 0.0f,
-                Animation.RELATIVE_TO_PARENT, 0.0f,
-                Animation.RELATIVE_TO_PARENT, 0.0f);
-        inFromRight.setDuration(500);
-        inFromRight.setInterpolator(new LinearInterpolator());
-        return inFromRight;
+    public void setMainMode(int mode) {
+        this.mainMode = mode;
     }
 
-    private Animation outToLeftAnimation() {
-        Animation outtoLeft = new TranslateAnimation(
-                Animation.RELATIVE_TO_PARENT, 0.0f,
-                Animation.RELATIVE_TO_PARENT, -1.0f,
-                Animation.RELATIVE_TO_PARENT, 0.0f,
-                Animation.RELATIVE_TO_PARENT, 0.0f);
-        outtoLeft.setDuration(500);
-        outtoLeft.setInterpolator(new LinearInterpolator());
-        return outtoLeft;
-    }
 }

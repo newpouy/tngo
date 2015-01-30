@@ -21,14 +21,18 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
-import com.example.android.common.logger.Log;
+import android.util.Log;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.UUID;
 
@@ -253,6 +257,23 @@ public class BluetoothService {
         // Perform the write unsynchronized
         r.write(out);
     }
+    public void writeBitmap(Bitmap bitmap){
+        ConnectedThread r;
+        Log.d(TAG, bitmap+" is come");
+        // Synchronize a copy of the ConnectedThread
+        synchronized (this) {
+            if (mState != STATE_CONNECTED) return;
+            r = mConnectedThread;
+        }
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        boolean success = bitmap.compress(Bitmap.CompressFormat.PNG, 0, byteStream);
+        byte bitmapBytes[] = byteStream.toByteArray();
+        byte bitmapData[] = "hihi".getBytes();
+        if (success) {
+            //r.write(bitmapData);
+            r.write(bitmapBytes);
+        }
+    }
 
     /**
      * Indicate that the connection attempt failed and notify the UI Activity.
@@ -469,17 +490,30 @@ public class BluetoothService {
             mmOutStream = tmpOut;
         }
 
+        Bitmap bitmap = null;
         public void run() {
             Log.i(TAG, "BEGIN mConnectedThread");
             byte[] buffer = new byte[1024];
             int bytes;
 
+            try {
+                bitmap = BitmapFactory.decodeStream(mmInStream);
+            }catch (Exception e){
+                Log.d(TAG, "eeee");
+            }
+            if(bitmap!=null){
+                Log.d(TAG, "bitmap height----"+bitmap.getHeight());
+                Bitmap mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888,true);
+                mHandler.obtainMessage(Constants.BITMAP_READ, 1, -1, mutableBitmap)
+                        .sendToTarget();
+            }
             // Keep listening to the InputStream while connected
             while (true) {
                 try {
                     // Read from the InputStream
+                    //mmInStream.reset();
                     bytes = mmInStream.read(buffer);
-
+                    Log.d(TAG, "repeat--------"+bytes);
                     // Send the obtained bytes to the UI Activity
                     mHandler.obtainMessage(Constants.MESSAGE_READ, bytes, -1, buffer)
                             .sendToTarget();
@@ -491,6 +525,7 @@ public class BluetoothService {
                     break;
                 }
             }
+
         }
 
         /**
@@ -501,7 +536,10 @@ public class BluetoothService {
         public void write(byte[] buffer) {
             try {
                 mmOutStream.write(buffer);
-
+                /*for(byte b : buffer) {
+                    Log.d(TAG, b+"");
+                }*/
+                Log.d(TAG, "------buffer length: "+buffer.length);
                 // Share the sent message back to the UI Activity
                 mHandler.obtainMessage(Constants.MESSAGE_WRITE, -1, -1, buffer)
                         .sendToTarget();
@@ -510,10 +548,20 @@ public class BluetoothService {
                 Log.e(TAG, "Exception during write", e);
             }
         }
+        /*write bitmap by newpouy*/
+        public void writeBitmap(byte[] bytes, int a, int b ){
+            try {
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(mmOutStream);
+                //objectOutputStream.write();
+            } catch (IOException ie){
+
+            }
+        }
 
         public void cancel() {
             try {
                 mmSocket.close();
+                bitmap.recycle();//high level troubleshooting related to
             } catch (IOException e) {
                 Log.e(TAG, "close() of connect socket failed", e);
             }

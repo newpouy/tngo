@@ -15,6 +15,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -44,10 +45,12 @@ public class DrawView extends View {
     int pWidth;
     int pHeight;
     final ViewGroup mParentView;
+    BluetoothService bluetoothService;
     Drawable drawable;
-    public DrawView(final Context context, final RelativeLayout parentView, Activity parentActivity) {
+    public DrawView(final Context context, final RelativeLayout parentView, Activity parentActivity, BluetoothService bluetoothService) {
         super(context);
         this.context = context;
+        this.bluetoothService = bluetoothService;
         mParentView = parentView;
 
 /*        DisplayMetrics displayMetrics = new DisplayMetrics();
@@ -61,7 +64,7 @@ public class DrawView extends View {
 /*                int pWidth = mParentView.getWidth();
                 int pHeight = mParentView.getHeight();
                 bitmap = Bitmap.createBitmap(pWidth/2, pHeight/2, Bitmap.Config.ARGB_8888);*/
-                FlingImageView newView = new FlingImageView(getContext(), DrawView.this);
+                FlingImageView newView = new FlingImageView(getContext(), DrawView.this, bitmap);
                 Log.d(TAG, mParentView.getWidth()+"is p's w and "+mParentView.getHeight()+" is p's h");
                 newView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, bitmap.getWidth() / 2, bitmap.getHeight() / 2, true));
                 newView.setBackgroundColor(Color.argb(255, 248, 230, 124));
@@ -69,6 +72,7 @@ public class DrawView extends View {
                 parentView.setHorizontalGravity(Gravity.CENTER);
                 parentView.setVerticalGravity(Gravity.BOTTOM);
                 mParentView.addView(newView);
+
                 //bitmap파일로 저장하고 불러오기. file객체와 IO stream사용
                 //Handler구현해서 플립으로 보내고 나서 수행할 동작 만들고,
                 //onFling이 있는 FlingImageView에서 메시지 핸들링을 하지 않고 여기서 한다.
@@ -126,9 +130,14 @@ public class DrawView extends View {
             this.isDraw = isDraw;
         }
     }
-    public void sendImage(){
+    public void sendImage(Bitmap bitmap){
         Log.d(TAG, "try fling!!");
+        bluetoothService.writeBitmap(bitmap);
 
+    }
+    public void setBitmap(Bitmap bitmap){
+        mCanvas = new Canvas(bitmap);
+        this.draw(mCanvas);
     }
     private final Handler mHandler = new Handler() {
         @Override
@@ -145,7 +154,7 @@ public class DrawView extends View {
                             break;
                     }
                     break;
-                case Constants.MESSAGE_WRITE:
+                case Constants.BITMAP_WRITE:
                     break;
                 case Constants.MESSAGE_READ:
                     break;
