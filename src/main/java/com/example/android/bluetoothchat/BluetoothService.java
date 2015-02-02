@@ -561,7 +561,7 @@ public class BluetoothService {
         public void cancel() {
             try {
                 mmSocket.close();
-                bitmap.recycle();//high level troubleshooting related to
+                bitmap.recycle();//high level troubleshooting related to Android Memory issue
             } catch (IOException e) {
                 Log.e(TAG, "close() of connect socket failed", e);
             }

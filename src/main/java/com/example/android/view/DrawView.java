@@ -73,12 +73,6 @@ public class DrawView extends View {
                 parentView.setVerticalGravity(Gravity.BOTTOM);
                 mParentView.addView(newView);
 
-                //bitmap파일로 저장하고 불러오기. file객체와 IO stream사용
-                //Handler구현해서 플립으로 보내고 나서 수행할 동작 만들고,
-                //onFling이 있는 FlingImageView에서 메시지 핸들링을 하지 않고 여기서 한다.
-                //그 이유는 이미지를 주고 받는 곳이 여기이기 때문이다.
-                //onFling했을 때 flag를 바꾸고 touch이벤트에 fling 플래그가 참이면 보내기 성공, 등의 이벤트 처리를 하는걸로
-                //또 이미지를 받는 곳도 이 뷰로 하고, 이미지가 오면 받을지 말지 결정하고 추가편집도 하고..
             }
         });
         setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
